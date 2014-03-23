@@ -26,18 +26,16 @@ class Blower(object):
         PWM.stop(blower_pin)
         PWM.cleanup()
 
-    @property
-    def speed(self):
+    def get_speed(self):
         """
         The speed of the blower, from 0-100
         
-        :getter: Returns the current speed
-        :setter: Sets the speed
+        :returns: Returns the current speed
+        :rtype: int
         """ 
         return self._speed
 
-    @speed.setter
-    def speed(self, speed):
+    def set_speed(self, speed):
         """
         Sets the speed of the blower
 

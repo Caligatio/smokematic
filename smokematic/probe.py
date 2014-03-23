@@ -1,10 +1,12 @@
-from collections import deque
 import math
 
 import Adafruit_BBIO.ADC as ADC
 import tornado.ioloop
 
+SAMPLE_PERIOD = 3
+
 HIGH_RESIST = 10000
+EMA_MULT = (2.0 / ((60.0 / SAMPLE_PERIOD) + 1.0))
 
 class Probe(object):
     """
@@ -31,43 +33,47 @@ class Probe(object):
             raise ValueError('Unspported thermal probe type')
 
         # Going to call a temperature read every 10 seconds so keep the last minute's worth
-        self._readings = deque(maxlen=6)
 
         self._probe_pin = probe_pin
+        self._ema_temp = None
 
         ADC.setup()
 
         # Take a temperature immediately
         self._take_temperature()
 
-        # Setup a periodic call every 10 seconds to take the temperature
+        # Setup a periodic call every 1 second to take the temperature
         self._periodic_temp = tornado.ioloop.PeriodicCallback(
             self._take_temperature,
-            10000)
+            SAMPLE_PERIOD * 1000)
         self._periodic_temp.start()
         
-    @property
-    def temperature(self):
+    def get_temp(self):
         """
-        Returns the average of the last minute's worth of temperature readings
+        Returns the exponential moving average temperature from the last minute
 
-        :returns: The current temperature
-        :rtype: int
+        :returns: The EMA temperature
+        :rtype: float
         """
-        return sum(self._readings)/len(self._readings)
-    
+        return self._ema_temp
+
     def _take_temperature(self):
         """
         Takes a temperature reading from the probe
 
         Reads the ADC and uses the Steinhart-Hart equation to convert the read
-        voltage to degrees fahrenheit.  Appends the results to the internal queue
+        voltage to degrees fahrenheit.
         """
         value = ADC.read(self._probe_pin)
         resistance = (HIGH_RESIST * value) / (1 - value)
-        invert_temp_k = self._sh_a + self._sh_b * math.log(resistance) + \
-            self._sh_c * math.pow(math.log(resistance), 3)
+        log_resistance = math.log(resistance)
+        invert_temp_k = self._sh_a + self._sh_b * log_resistance + self._sh_c * math.pow(log_resistance, 3)
         temp_k = 1 / invert_temp_k
         temp_f = (9.0 / 5.0) * (temp_k - 273.15) + 32
        
-        self._readings.append(temp_f) 
+        self._last_temp = temp_f
+
+        if not self._ema_temp:
+            self._ema_temp = temp_f
+
+        self._ema_temp = (self._last_temp - self._ema_temp) * EMA_MULT + self._ema_temp
