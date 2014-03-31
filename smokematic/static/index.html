@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Smokematic</title>
+        <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+
+        <script language="javascript" type="text/javascript" src="/static/js/jquery.min.js"></script>
+        <script language="javascript" type="text/javascript" src="/static/js/jquery.flot.min.js"></script>
+        <script language="javascript" type="text/javascript" src="/static/js/jquery.flot.resize.min.js"></script>
+        <script language="javascript" type="text/javascript" src="/static/js/smokematic.js"></script>
+
+    </head>
+    <body>
+        <div id="graph"></div>
+        <form action="index.html" method="POST" id="profile">
+            <fieldset>
+                <legend>Cooking Profile</legend>
+                <div>
+                    <label for="temperature">Temperature:</label>
+                    <input type="text" name="temperature" id="temperature" value="250">
+                </div>
+                <button type="submit">Submit</button>
+            </fieldset>
+        </form>
+        <form action="index.html" method="POST" id="pid">
+            <fieldset>
+                <legend>PID Coefficients</legend>
+                <div>
+                    <label for="k_p">P Coefficient:</label>
+                    <input type="text" name="k_p" id="k_p" value="3">
+                </div>
+                <div>
+                    <label for="k_i">I Coefficient:</label>
+                    <input type="text" name="k_i" id="k_i" value="0.005">
+                </div>
+                <div>
+                    <label for="k_d">D Coefficient:</label>
+                    <input type="text" name="k_d" id="k_d" value="20">
+                </div>
+                <button type="submit">Submit</button>
+            </fieldset>
+        </form>
+    </body>
+</html>
