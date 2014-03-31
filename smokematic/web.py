@@ -7,7 +7,7 @@ import tornado.web
 from baster import Baster
 from blower import Blower
 from probe import Probe
-from pid import PidController
+from controller import PidController
 
 class BlowerHandler(tornado.web.RequestHandler):
     def put(self):
