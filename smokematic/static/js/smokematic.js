@@ -108,6 +108,7 @@ $(function() {
         })
         .done(function(data) {
             $('#tempModal').modal('hide');
+            $("#temperature").closest('.form-group').removeClass('has-success');
             //console.log(data); 
         });
 
