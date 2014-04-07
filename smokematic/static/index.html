@@ -76,9 +76,9 @@
                             </div>
                             <div class="form-group">
                                 <label class="control-label col-md-4" for="k_i">I Coefficient</label>
-                                    <div class="col-md-6">
-                                        <input type="text" class="form-control" id="k_i" name="k_i"/>
-                                    </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="k_i" name="k_i"/>
+                                </div>
                             </div>
                             <div class="form-group">
                                 <label class="control-label col-md-4" for="k_d">D Coefficient</label>
@@ -133,7 +133,10 @@
                             <div class="form-group">
                                 <label class="control-label col-md-4" for="temperature">Temperature</label>
                                 <div class="col-md-6">
-                                    <input type="text" class="form-control" id="temperature" name="temperature"/>
+                                    <div class="input-group">
+                                        <span class="input-group-addon">&deg;F</span>
+                                        <input type="text" class="form-control" id="temperature" name="temperature"/>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -157,6 +160,7 @@
     <script type="text/javascript" src="/static/js/additional-methods.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.flot.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.flot.resize.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.flot.axislabels.js"></script>
     <script type="text/javascript" src="/static/js/smokematic.js"></script>
 </body>
 </html>

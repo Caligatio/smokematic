@@ -22,10 +22,10 @@ $(function () {
 
     var options = {
         legend: {position: "sw"},
-        xaxis: {mode: "time", timeformat: "%H:%M:%S"},
+        xaxis: {mode: "time", timeformat: "%H:%M:%S", axisLabel: "Time"},
         yaxes: [
-            {position: "left", min: 0, max: 400},
-            {position: "right", min:0, max: 100}],
+            {position: "left", min: 0, max: 400, axisLabel: "Temperature"},
+            {position: "right", min:0, max: 100, axisLabel: "Percentage"}],
     };
 
     var plot = $.plot($("#graph"), [], options);
@@ -138,6 +138,7 @@ $(function() {
             unhighlight: function (element) {
                 $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
             },
+            errorClass: 'help-block',
             submitHandler: function(form){
                 var form_data = JSON.stringify(
                     {
@@ -181,6 +182,7 @@ $(function() {
             unhighlight: function (element) {
                 $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
             },
+            errorClass: 'help-block',
             submitHandler: function(form){
                 var form_data = JSON.stringify(
                     {
@@ -224,6 +226,14 @@ $(function() {
             },
             unhighlight: function (element) {
                 $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
+            },
+            errorClass: 'help-block',
+            errorPlacement: function(error, element) {
+                if(element.parent('.input-group').length) {
+                    error.insertAfter(element.parent());
+                } else {
+                    error.insertAfter(element);
+                }
             },
             submitHandler: function(form){
                 var form_data = JSON.stringify(
