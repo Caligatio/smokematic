@@ -1,34 +1,27 @@
-html, body {
+html  {
     height: 100%; /* make the percentage height on placeholder work */
 }
 
+body {
+    height: 100%; /* make the percentage height on placeholder work */
+    padding-top: 70px;
+    padding-bottom: 30px;
+}
+
+.theme-dropdown .dropdown-menu {
+  position: static;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.theme-showcase > p > .btn {
+  margin: 5px 0;
+}
+
+div.container {
+    height: 100%
+} 
+
 #graph {
-    width:90%;
-    height:60%;
-}
-
-form fieldset {
-    clear: both;
-    width: 50%;
-    font-size: 100%;
-    border-color: #000000;
-    border-width: 1px 0 0 0;
-    border-style: solid none none none;
-    padding: 10px;
-    margin: 0 0 0 0;
-}
-
-form fieldset legend {
-    font-size: 150%;
-    font-weight: normal;
-    color: #000000;
-    margin: 0 0 0 0;
-    padding: 0 5px;
-}
-
-label {
-    float: left;
-    text-align: right;
-    margin-right: 15px;
-    width: 100px;
+    height: 100%
 }

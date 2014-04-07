@@ -12,8 +12,9 @@ from controller import Controller
 
 class StatusWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
-        self._update_handle = tornado.ioloop.PeriodicCallback(self.send_update_info, 1000)
+        self._update_handle = tornado.ioloop.PeriodicCallback(self.send_update_info, 5000)
         self._update_handle.start()
+        self.send_update_info()
 
     def send_full_info(self):
         pass
@@ -65,13 +66,28 @@ class BasterHandler(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.finish('{}\n'.format(json.dumps(ret_dict)))
 
-class ProfileHandler(tornado.web.RequestHandler):
-    def post(self):
+class OverrideHandler(tornado.web.RequestHandler):
+    def get(self):
+        controller = self.application.settings['controller']
+
+        override_status = controller.get_state() == Controller.OVERRIDE
+        self.content_type = 'application/json'
+        self.finish('{}\n'.format(
+            json.dumps(
+                {
+                    'status': 'success',
+                    'data': {
+                        'override': override_status,
+                        'temperature': controller.get_setpoint() if override_status else None,
+                    }
+                })))
+        
+    def put(self):
         try:
             data = json.loads(self.request.body)
             controller = self.application.settings['controller']
 
-            temperature = data['temperature']
+            temperature = float(data['temperature'])
 
             try:
                 controller.override_temp(temperature)
@@ -103,6 +119,27 @@ class ProfileHandler(tornado.web.RequestHandler):
         self.content_type = 'application/json'
         self.finish('{}\n'.format(json.dumps(ret_dict)))
  
+    def delete(self):
+        controller = self.application.settings['controller']
+        ret_dict = {}
+
+        if controller.get_state() != Controller.OVERRIDE:
+            ret_dict = {
+                'status': 'fail',
+                'data': 'Currently not in override mode'
+            }
+            self.set_status(400)
+        else:
+            controller.resume_profile()
+            ret_dict = {
+                'status': 'success',
+                'data': 'Cooking profile resumed'
+            }
+
+        self.content_type = 'application/json'
+        self.finish('{}\n'.format(json.dumps(ret_dict)))
+
+class ProfileHandler(tornado.web.RequestHandler):
     def put(self):
         try:
             data = json.loads(self.request.body)
@@ -144,7 +181,22 @@ class ProfileHandler(tornado.web.RequestHandler):
         self.finish('{}\n'.format(json.dumps(ret_dict)))
 
 class PidHandler(tornado.web.RequestHandler):
-     def put(self):
+    def get(self):
+        controller = self.application.settings['controller']
+        coefficients = controller.get_pid_coefficients()
+
+        self.content_type = 'application/json'
+        self.finish('{}\n'.format(
+            json.dumps(
+                {
+                'status': 'success',
+                'data': {
+                    'coefficients': {
+                        'p': coefficients[0],
+                        'i': coefficients[1],
+                        'd': coefficients[2]}}})))
+
+    def put(self):
         try:
             data = json.loads(self.request.body)
             controller = self.application.settings['controller']
@@ -202,11 +254,13 @@ def main():
         food1_probe)
 
     controller.set_pid_coefficients(3, 0.005, 20)
+    controller.set_profile({0: 250})
 
     application = tornado.web.Application(
         [
             (r'/status', StatusWebSocket),
             (r'/profile', ProfileHandler),
+            (r'/override', OverrideHandler),
             (r'/pid', PidHandler),
             (r'/baster', BasterHandler)],
         static_path = 'static',

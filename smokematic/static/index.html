@@ -1,44 +1,162 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>Smokematic</title>
-        <link rel="stylesheet" type="text/css" href="/static/css/main.css">
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
 
-        <script language="javascript" type="text/javascript" src="/static/js/jquery.min.js"></script>
-        <script language="javascript" type="text/javascript" src="/static/js/jquery.flot.min.js"></script>
-        <script language="javascript" type="text/javascript" src="/static/js/jquery.flot.resize.min.js"></script>
-        <script language="javascript" type="text/javascript" src="/static/js/smokematic.js"></script>
+    <title>Smokematic</title>
 
-    </head>
-    <body>
+    <!-- Bootstrap core CSS -->
+    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="/static/css/bootstrap-theme.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="/static/css/main.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+      <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body role="document">
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/static/index.html">Smokematic</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Cooking Profiles <b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="newProfileBtn">New</a></li>
+                            <li><a href="#">Export</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#" id="tempOverrideBtn">Temperature Override</a></li>
+                    <li><a href="#" id="bastingBtn">Basting Settings</a></li>
+                    <li><a href="#" id="pidTweaksBtn">PID Tweaks</a></li>
+                </ul>
+            </div><!--/.nav-collapse -->
+        </div>
+    </div>
+    
+    <div class="container theme-showcase" role="main">
         <div id="graph"></div>
-        <form action="index.html" method="POST" id="profile">
-            <fieldset>
-                <legend>Cooking Profile</legend>
-                <div>
-                    <label for="temperature">Temperature:</label>
-                    <input type="text" name="temperature" id="temperature" value="250">
+      
+        <div class="modal fade" id="pidModal" tabindex="-1" role="dialog" aria-labelledby="pidTitle" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="pidTitle">PID Tweaks</h4>
+                    </div>
+                    <form class="form-horizontal" name="pidForm" id="pidForm" method="post" action="#">
+                        <div class="modal-body">
+                        
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="k_p">P Coefficient</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="k_p" name="k_p"/>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="k_i">I Coefficient</label>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" id="k_i" name="k_i"/>
+                                    </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="k_d">D Coefficient</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="k_d" name="k_d"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Set</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
                 </div>
-                <button type="submit">Submit</button>
-            </fieldset>
-        </form>
-        <form action="index.html" method="POST" id="pid">
-            <fieldset>
-                <legend>PID Coefficients</legend>
-                <div>
-                    <label for="k_p">P Coefficient:</label>
-                    <input type="text" name="k_p" id="k_p" value="3">
+            </div>
+        </div>
+
+        <div class="modal fade" id="newProfileModal" tabindex="-1" role="dialog" aria-labelledby="newProfileTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="newProfileTitle">Temperature Override</h4>
+                    </div>
+                    <form class="form-horizontal" name="newProfileForm" id="newProfileForm" method="post" action="#">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="newProfile">New Profile</label>
+                                <div class="col-md-6">
+                                    <textarea class="form-control" id="newProfile" name="newProfile" rows="10"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Set</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
                 </div>
-                <div>
-                    <label for="k_i">I Coefficient:</label>
-                    <input type="text" name="k_i" id="k_i" value="0.005">
+            </div>
+        </div>
+    
+        <div class="modal fade" id="tempModal" tabindex="-1" role="dialog" aria-labelledby="tempTitle" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="tempTitle">Temperature Override</h4>
+                    </div>
+                    <form class="form-horizontal" name="tempForm" id="tempForm" method="post" action="#">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="temperature">Temperature</label>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="temperature" name="temperature"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Set</button>
+                            <button type="button" class="btn btn-default" id="tempResumeBtn">Resume Profile</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
                 </div>
-                <div>
-                    <label for="k_d">D Coefficient:</label>
-                    <input type="text" name="k_d" id="k_d" value="20">
-                </div>
-                <button type="submit">Submit</button>
-            </fieldset>
-        </form>
-    </body>
+            </div>
+        </div>
+    </div> <!-- /container -->
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+    <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="/static/js/additional-methods.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.flot.resize.min.js"></script>
+    <script type="text/javascript" src="/static/js/smokematic.js"></script>
+</body>
 </html>

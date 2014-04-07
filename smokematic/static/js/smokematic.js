@@ -1,4 +1,4 @@
-(function( skillet, $, undefined ) {
+(function(smokematic, $, undefined) {
     var infoCallback = null;
     
     smokematic.connect = function(callback) {
@@ -12,10 +12,10 @@
 	
         // Listen for socket closes
         socket.onclose = function(event) {
-            console.log('Client notified socket has closed',event);
+            //console.log('Client notified socket has closed', event);
         };
     } 
-}( window.smokematic = window.smokematic || {}, jQuery ));
+}(window.smokematic = window.smokematic || {}, jQuery));
 
 $(function () {
     var data = {food_temp: [], pit_temp: [], blower_speed: [], setpoint: []};
@@ -24,7 +24,7 @@ $(function () {
         legend: {position: "sw"},
         xaxis: {mode: "time", timeformat: "%H:%M:%S"},
         yaxes: [
-            {position: "left", min: 0, max: 350},
+            {position: "left", min: 0, max: 400},
             {position: "right", min:0, max: 100}],
     };
 
@@ -36,6 +36,7 @@ $(function () {
         /* Localize the timestamps */
         time = dateObj.getTime() - dateObj.getTimezoneOffset() * 60 * 1000;
 
+        console.log(event_data);
         data.food_temp.push([time, event_data.food1_temp]);
         data.pit_temp.push([time, event_data.pit_temp]);
         data.setpoint.push([time, event_data.setpoint]);
@@ -52,77 +53,198 @@ $(function () {
 });
 
 $(function() {
-    // process the form
-    $("#profile").submit(function(event) {
-
-        // get the form data
-        // there are many ways to get this data using jQuery (you can use the class or id also)
-        var form_data = JSON.stringify(
-            {
-                "profile": {
-                    0: $("#temperature").val()
-                }
-            }
-        )
-        console.log(form_data);
-
+    /* Add onclick action for the Cooking Profile->New button */
+    $("#newProfileBtn").click(function() {
+        $('#newProfileModal').modal()
+    });
+    /* Add onclick action for the Temperature Override button */
+    $("#tempOverrideBtn").click(function() {
+        /* Need to do an AJAX call to check whether smoker is in override mode */
         $.ajax({
-            type: 'PUT',
-            url: '/profile',
-            data: form_data,
-            processData: false,
+            type: 'GET',
+            url: '/override',
             contentType: "application/json",
             dataType: 'json'
         })
-            // using the done promise callback
-            .done(function(data) {
-
-                // log data to the console so we can see
-                console.log(data); 
-
-                // here we will handle errors and validation messages
-            });
-
-        // stop the form from submitting the normal way and refreshing the page
-        event.preventDefault();
-    });
-});
-
-$(function() {
-    // process the form
-    $("#pid").submit(function(event) {
-
-        // get the form data
-        // there are many ways to get this data using jQuery (you can use the class or id also)
-        var form_data = JSON.stringify(
-            {
-                "coefficients": {
-                    p: $("#k_p").val(),
-                    i: $("#k_i").val(),
-                    d: $("#k_d").val()
-                }
+        .done(function(data) {
+            if (data.data.override == true) {
+                $('#tempResumeBtn').show();
+                $('#temperature').val(data.data.temperature);
             }
-        )
-        console.log(form_data);
+            else
+            {
+                $('#tempResumeBtn').hide();
+                $('#temperature').val(null);
+            }
 
+            $('#tempModal').modal()
+            //console.log(data); 
+        });
+    });
+    /* Add onclick action for the PID Tweaks button */
+    $("#pidTweaksBtn").click(function() {
         $.ajax({
-            type: 'PUT',
+            type: 'GET',
             url: '/pid',
-            data: form_data,
-            processData: false,
             contentType: "application/json",
             dataType: 'json'
         })
-            // using the done promise callback
-            .done(function(data) {
+        .done(function(data) {
+            $('#k_p').val(data.data.coefficients.p);
+            $('#k_i').val(data.data.coefficients.i);
+            $('#k_d').val(data.data.coefficients.d);
 
-                // log data to the console so we can see
-                console.log(data); 
-
-                // here we will handle errors and validation messages
-            });
-
-        // stop the form from submitting the normal way and refreshing the page
-        event.preventDefault();
+            $('#pidModal').modal()
+            //console.log(data); 
+        })
     });
+
+    /* Add onclick action for the "Resume Profile" button */
+    $("#tempResumeBtn").click(function() {
+        $.ajax({
+            type: 'DELETE',
+            url: '/override',
+            dataType: 'json'
+        })
+        .done(function(data) {
+            $('#tempModal').modal('hide');
+            //console.log(data); 
+        });
+
+    });
+
+    $("#pidForm")
+        .submit(function(e){
+            e.preventDefault()
+        })
+        .validate({
+            rules: {
+                k_p: {
+                    number: true,
+                    required: true
+                },
+                k_i: {
+                    number: true,
+                    required: true
+                },
+                k_d: {
+                    number: true,
+                    required: true
+                }
+            },
+            highlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
+            },
+            submitHandler: function(form){
+                var form_data = JSON.stringify(
+                    {
+                        "coefficients": {
+                            p: $("#k_p").val(),
+                            i: $("#k_i").val(),
+                            d: $("#k_d").val()
+                        }
+                    }
+                )
+                console.log(form_data);
+
+                $.ajax({
+                    type: 'PUT',
+                    url: '/pid',
+                    data: form_data,
+                    processData: false,
+                    contentType: "application/json",
+                    dataType: 'json'
+                })
+                .done(function(data) {
+                    $('#pidModal').modal('hide');
+                    //console.log(data); 
+                });
+            }
+        })
+    
+    $("#newProfileForm")
+        .submit(function(e){
+            e.preventDefault()
+        })
+        .validate({
+            rules: {
+                newProfile:{
+                    required: true
+                }
+            },
+            highlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
+            },
+            submitHandler: function(form){
+                var form_data = JSON.stringify(
+                    {
+                        "profile": JSON.parse($("#newProfile").val())
+                    }
+                )
+                //console.log(form_data);
+
+                $.ajax({
+                    type: 'PUT',
+                    url: '/profile',
+                    data: form_data,
+                    processData: false,
+                    contentType: "application/json",
+                    dataType: 'json'
+                })
+                .done(function(data) {
+                    $('#newProfileModal').modal('hide');
+                    //console.log(data); 
+                });
+            }
+        })    
+
+    $("#tempForm")
+        .submit(function(e){
+            e.preventDefault()
+        })
+        .validate({
+            rules: {
+                temperature:{
+                    number: true,
+                    range: [0, 500],
+                    required: true
+                }
+            },
+            messages: {
+                temperature: "Temperature must be 0-500 degrees"
+            },
+            highlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
+            },
+            submitHandler: function(form){
+                var form_data = JSON.stringify(
+                    {
+                        "temperature": $("#temperature").val()
+                    }
+                )
+                //console.log(form_data);
+
+                $.ajax({
+                    type: 'PUT',
+                    url: '/override',
+                    data: form_data,
+                    processData: false,
+                    contentType: "application/json",
+                    dataType: 'json'
+                })
+                .done(function(data) {
+                    $('#tempModal').modal('hide');
+                    //console.log(data); 
+                });
+            }
+        })
 })

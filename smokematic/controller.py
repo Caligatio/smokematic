@@ -1,5 +1,5 @@
-import datetime
 import logging
+import time
 
 import tornado.gen
 
@@ -30,7 +30,9 @@ class Controller(object):
 
         self._pid = Pid(blower, pit_probe)
 
+        self._profile_periodic_handle = None
         self._cook_profile = None
+        self._profile_time_start = None
         self._state = Controller.UNINITIALIZED
 
     def set_pid_coefficients(self, p, i, d):
@@ -46,6 +48,15 @@ class Controller(object):
         """
         self._pid.set_coefficients(p, i, d)
 
+    def get_pid_coefficients(self):
+        """
+        Returns the current PID coefficients
+
+        :returns: Tuple containing the P, I, D coefficients
+        :rtype: Tuple
+        """
+        return self._pid.get_coefficients()
+
     def set_profile(self, profile):
         """
         Sets a new cooking profile
@@ -53,10 +64,48 @@ class Controller(object):
         :param profile: A dictionary with numeric minute keys and temperature values
         :type prfile: dict
         """
+        if 0 not in profile:
+            raise ValueError('Profile must have a temperature for time 0')
+
         self._cook_profile = profile
-        self._pid.set_setpoint(profile[0])
+        self._profile_time_start = time.time()
+
+        self._set_temperature_from_profile()
+
+        if self._profile_periodic_handle:
+            self._profile_periodic_handle.stop()
+
+        self._profile_periodic_handle = tornado.ioloop.PeriodicCallback(
+            self._set_temperature_from_profile,
+            1000)
+
+        self._profile_periodic_handle.start()
+
         self._state = Controller.PROFILE_RUNNING
+
+    def _set_temperature_from_profile(self):
+        """
+        Sets the temperature based upon the cooking profile
+        """
+        now = time.time()
+        time_offset = (now - self._profile_time_start) / 60
         
+        sorted_times = sorted(self._cook_profile.keys())
+
+        for profile_time in sorted_times:
+            if time_offset >= profile_time:
+                if self.get_setpoint() != self._cook_profile[profile_time]:
+                    self._pid.set_setpoint(self._cook_profile[profile_time])
+        
+    def get_state(self):
+        """
+        Returns the state of the controller
+
+        :returns: Controller state
+        :rtype: int
+        """
+        return self._state
+
     def override_temp(self, temp):
         """
         Overrides the cooking profile with a single temperature
@@ -64,6 +113,10 @@ class Controller(object):
         :param temp: The manual temperature
         :type temp: float
         """
+        if self._profile_periodic_handle:
+            self._profile_periodic_handle.stop()
+            self._profile_periodic_handle = None
+
         self._pid.set_setpoint(temp) 
         self._state = Controller.OVERRIDE
 
@@ -80,8 +133,16 @@ class Controller(object):
         """
         Resumes the cooking profile after a manual override
         """
-        pass
+        if self._profile_periodic_handle:
+            self._profile_periodic_handle.stop()
 
+        self._set_temperature_from_profile()
+        self._profile_periodic_handle = tornado.ioloop.PeriodicCallback(
+            self._set_temperature_from_profile,
+            1000)
+
+        self._profile_periodic_handle.start()
+        self._state = Controller.PROFILE_RUNNING
 
 class Pid(object):
     """
@@ -150,6 +211,15 @@ class Pid(object):
         self._k_p = p
         self._k_i = i
         self._k_d = d
+
+    def get_coefficients(self):
+        """
+        Returns the current PID coefficients
+
+        :returns: Tuple containing the P, I, D coefficients
+        :rtype: Tuple
+        """
+        return (self._k_p, self._k_i, self._k_d)
 
     def enable(self):
         """
