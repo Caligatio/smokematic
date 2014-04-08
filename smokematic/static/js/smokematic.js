@@ -36,7 +36,7 @@ $(function () {
         /* Localize the timestamps */
         time = dateObj.getTime() - dateObj.getTimezoneOffset() * 60 * 1000;
 
-        console.log(event_data);
+        //console.log(event_data);
         data.food_temp.push([time, event_data.food1_temp]);
         data.pit_temp.push([time, event_data.pit_temp]);
         data.setpoint.push([time, event_data.setpoint]);
@@ -78,6 +78,22 @@ $(function() {
             }
 
             $('#tempModal').modal()
+            //console.log(data); 
+        });
+    });
+    /* Add onclick action for the Basting Settings button */
+    $("#basteBtn").click(function() {
+        /* Need to do an AJAX call to get the current basting settings */
+        $.ajax({
+            type: 'GET',
+            url: '/baste',
+            contentType: "application/json",
+            dataType: 'json'
+        })
+        .done(function(data) {
+            $('#basteFreq').val(data.data.frequency);
+            $('#basteDur').val(data.data.duration);
+            $('#basteModal').modal()
             //console.log(data); 
         });
     });
@@ -206,6 +222,65 @@ $(function() {
                 });
             }
         })    
+
+    $("#basteForm")
+        .submit(function(e){
+            e.preventDefault()
+        })
+        .validate({
+            rules: {
+                basteFreq: {
+                    number: true,
+                    range: [0, 120],
+                    required: true
+                },
+                basteDur: {
+                    number: true,
+                    range: [0, 10],
+                    required: true
+                }
+            },
+            messages: {
+                basteFreq: "Frequency must be between 0 (disabled) and 120 minutes",
+                basteDur: "Duration must be between 0 and 10 seconds"
+            },
+            highlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
+            },
+            errorClass: 'help-block',
+            errorPlacement: function(error, element) {
+                if(element.parent('.input-group').length) {
+                    error.insertAfter(element.parent());
+                } else {
+                    error.insertAfter(element);
+                }
+            },
+            submitHandler: function(form){
+                var form_data = JSON.stringify(
+                    {
+                        "frequency": $("#basteFreq").val(),
+                        "duration": $("#basteDur").val()
+                    }
+                )
+                //console.log(form_data);
+
+                $.ajax({
+                    type: 'PUT',
+                    url: '/baste',
+                    data: form_data,
+                    processData: false,
+                    contentType: "application/json",
+                    dataType: 'json'
+                })
+                .done(function(data) {
+                    $('#basteModal').modal('hide');
+                    //console.log(data); 
+                });
+            }
+        })
 
     $("#tempForm")
         .submit(function(e){

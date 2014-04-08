@@ -48,7 +48,7 @@
                         </ul>
                     </li>
                     <li><a href="#" id="tempOverrideBtn">Temperature Override</a></li>
-                    <li><a href="#" id="bastingBtn">Basting Settings</a></li>
+                    <li><a href="#" id="basteBtn">Basting Settings</a></li>
                     <li><a href="#" id="pidTweaksBtn">PID Tweaks</a></li>
                 </ul>
             </div><!--/.nav-collapse -->
@@ -58,6 +58,97 @@
     <div class="container theme-showcase" role="main">
         <div id="graph"></div>
       
+        <div class="modal fade" id="newProfileModal" tabindex="-1" role="dialog" aria-labelledby="newProfileTitle" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="newProfileTitle">New Cooking Profile</h4>
+                    </div>
+                    <form class="form-horizontal" name="newProfileForm" id="newProfileForm" method="post" action="#">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="newProfile">New Profile</label>
+                                <div class="col-md-6">
+                                    <textarea class="form-control" id="newProfile" name="newProfile" rows="10"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Set</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    
+        <div class="modal fade" id="tempModal" tabindex="-1" role="dialog" aria-labelledby="tempTitle" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="tempTitle">Temperature Override</h4>
+                    </div>
+                    <form class="form-horizontal" name="tempForm" id="tempForm" method="post" action="#">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="temperature">Temperature</label>
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="temperature" name="temperature"/>
+                                        <span class="input-group-addon">&deg;F</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Set</button>
+                            <button type="button" class="btn btn-default" id="tempResumeBtn">Resume Profile</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="basteModal" tabindex="-1" role="dialog" aria-labelledby="basteTitle" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="basteTitle">Basting Settings</h4>
+                    </div>
+                    <form class="form-horizontal" name="basteForm" id="basteForm" method="post" action="#">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="basteFreq">Frequency</label>
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="basteFreq" name="basteFreq"/>
+                                        <span class="input-group-addon">Minutes</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="basteDur">Duration</label>
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="basteDur" name="basteDur"/>
+                                        <span class="input-group-addon">Seconds</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Set</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+ 
         <div class="modal fade" id="pidModal" tabindex="-1" role="dialog" aria-labelledby="pidTitle" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -96,59 +187,6 @@
             </div>
         </div>
 
-        <div class="modal fade" id="newProfileModal" tabindex="-1" role="dialog" aria-labelledby="newProfileTitle" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="newProfileTitle">Temperature Override</h4>
-                    </div>
-                    <form class="form-horizontal" name="newProfileForm" id="newProfileForm" method="post" action="#">
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="control-label col-md-4" for="newProfile">New Profile</label>
-                                <div class="col-md-6">
-                                    <textarea class="form-control" id="newProfile" name="newProfile" rows="10"></textarea>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Set</button>
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    
-        <div class="modal fade" id="tempModal" tabindex="-1" role="dialog" aria-labelledby="tempTitle" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                        <h4 class="modal-title" id="tempTitle">Temperature Override</h4>
-                    </div>
-                    <form class="form-horizontal" name="tempForm" id="tempForm" method="post" action="#">
-                        <div class="modal-body">
-                            <div class="form-group">
-                                <label class="control-label col-md-4" for="temperature">Temperature</label>
-                                <div class="col-md-6">
-                                    <div class="input-group">
-                                        <span class="input-group-addon">&deg;F</span>
-                                        <input type="text" class="form-control" id="temperature" name="temperature"/>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Set</button>
-                            <button type="button" class="btn btn-default" id="tempResumeBtn">Resume Profile</button>
-                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
     </div> <!-- /container -->
 
     <!-- Bootstrap core JavaScript

@@ -6,6 +6,7 @@ body {
     height: 100%; /* make the percentage height on placeholder work */
     padding-top: 70px;
     padding-bottom: 30px;
+    overflow-x: hidden;
 }
 
 .theme-dropdown .dropdown-menu {

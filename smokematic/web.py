@@ -29,23 +29,37 @@ class StatusWebSocket(tornado.websocket.WebSocketHandler):
     def on_close(self):
         self._update_handle.stop()
 
-class BasterHandler(tornado.web.RequestHandler):
-    def post(self):
+class BasteHandler(tornado.web.RequestHandler):
+    def get(self):
+        baster = self.application.settings['baster']
+        baster_settings = baster.get_settings()
+
+        self.content_type = 'application/json'
+        self.finish('{}\n'.format(
+            json.dumps(
+                {
+                    'status': 'success',
+                    'data': {
+                        'frequency': baster_settings[0],
+                        'duration': baster_settings[1]}})))
+                
+    def put(self):
         baster = self.application.settings['baster']
         try:
             data = json.loads(self.request.body)
 
             duration = float(data['duration'])
+            frequency = float(data['frequency'])
             try:
-                baster.baste(duration)
+                baster.config(frequency, duration)
                 ret_dict = {
                     'status': 'success',
-                    'data': {'duration': duration}}
+                    'data': {'duration': duration, 'frequency': frequency}}
                 self.set_status(200)
             except ValueError as e:
                 ret_dict = {
                     'status': 'fail',
-                    'data': {'duration' : str(e)}}
+                    'data': {'message' : str(e)}}
                 self.set_status(400)
             except Exception as e:
                 ret_dict = {
@@ -55,12 +69,12 @@ class BasterHandler(tornado.web.RequestHandler):
         except KeyError:
             ret_dict = {
                 'status': 'fail',
-                'data': {'duration': 'duration setting must be present'}}
+                'data': {'message': 'frequency and duration setting must be present'}}
             self.set_status(400)
         except ValueError:
             ret_dict = {
                 'status': 'fail',
-                'data': {'duration': 'duration setting must be present in JSON'}}
+                'data': {'message': 'frequency and duration setting must be present in JSON'}}
             self.set_status(400)
         
         self.content_type = 'application/json'
@@ -78,9 +92,7 @@ class OverrideHandler(tornado.web.RequestHandler):
                     'status': 'success',
                     'data': {
                         'override': override_status,
-                        'temperature': controller.get_setpoint() if override_status else None,
-                    }
-                })))
+                        'temperature': controller.get_setpoint() if override_status else None}})))
         
     def put(self):
         try:
@@ -262,7 +274,7 @@ def main():
             (r'/profile', ProfileHandler),
             (r'/override', OverrideHandler),
             (r'/pid', PidHandler),
-            (r'/baster', BasterHandler)],
+            (r'/baste', BasteHandler)],
         static_path = 'static',
         blower = blower,
         baster = baster,
