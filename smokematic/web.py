@@ -14,17 +14,33 @@ class StatusWebSocket(tornado.websocket.WebSocketHandler):
     def open(self):
         self._update_handle = tornado.ioloop.PeriodicCallback(self.send_update_info, 5000)
         self._update_handle.start()
-        self.send_update_info()
+        self.send_full_info()
 
     def send_full_info(self):
-        pass
+        controller = self.application.settings['controller']
+        stat_points = controller.get_stat_history(1)
+
+        initial_message_data = {}
+
+        for time_offset, data in stat_points.items():
+            initial_message_data[time_offset] = {
+                'pit_temp': data.pit_temp,
+                'food_temp': data.food_temps,
+                'setpoint': data.setpoint,
+                'blower_speed': data.blower_speed}
+ 
+        self.write_message({
+            'type': 'initial',
+            'data': initial_message_data})
 
     def send_update_info(self):
         self.write_message({
-            'pit_temp': self.application.settings['probes']['pit'].get_temp(),
-            'food1_temp': self.application.settings['probes']['food1'].get_temp(),
-            'setpoint': self.application.settings['controller'].get_setpoint(),
-            'blower_speed': self.application.settings['blower'].get_speed()})
+            'type': 'update',
+            'data': {
+                'pit_temp': self.application.settings['probes']['pit'].get_temp(),
+                'food_temp': [probe.get_temp() for probe in self.application.settings['probes']['food']],
+                'setpoint': self.application.settings['controller'].get_setpoint(),
+                'blower_speed': self.application.settings['blower'].get_speed()}})
 
     def on_close(self):
         self._update_handle.stop()
@@ -152,6 +168,14 @@ class OverrideHandler(tornado.web.RequestHandler):
         self.finish('{}\n'.format(json.dumps(ret_dict)))
 
 class ProfileHandler(tornado.web.RequestHandler):
+    def get(self):
+        controller = self.application.settings['controller']
+
+        self.set_header('Content-Type', 'application/octet-stream')
+        self.set_header('Content-Disposition', 'attachment; filename=cooking_profile.json')
+        stat_points = controller.get_stat_history(5)
+        self.finish('{}\n'.format(json.dumps({k:v.pit_temp for k,v in stat_points.items()})))
+
     def put(self):
         try:
             data = json.loads(self.request.body)
@@ -279,7 +303,7 @@ def main():
         blower = blower,
         baster = baster,
         controller = controller,
-        probes = {'food1': food1_probe, 'pit': pit_probe})
+        probes = {'food': (food1_probe,), 'pit': pit_probe})
 
     application.listen(8080)
     tornado.ioloop.IOLoop.instance().start()

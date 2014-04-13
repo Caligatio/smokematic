@@ -1,9 +1,12 @@
+from collections import namedtuple
 import logging
 import time
 
 import tornado.gen
 
 PID_INTERVAL = 60
+
+StatPoint = namedtuple('StatPoint', ['pit_temp', 'setpoint', 'blower_speed', 'food_temps'])
 
 class Controller(object):
     """
@@ -31,9 +34,11 @@ class Controller(object):
         self._pid = Pid(blower, pit_probe)
 
         self._profile_periodic_handle = None
+        self._stats_periodic_handle = None
         self._cook_profile = None
         self._profile_time_start = None
         self._state = Controller.UNINITIALIZED
+        self._stats_history = {}
 
     def set_pid_coefficients(self, p, i, d):
         """
@@ -77,12 +82,45 @@ class Controller(object):
 
         self._profile_periodic_handle = tornado.ioloop.PeriodicCallback(
             self._set_temperature_from_profile,
-            1000)
+            60000)
+
+        self._stats_history = {}
+        self._record_stats()
+        self._stats_periodic_handle = tornado.ioloop.PeriodicCallback(
+            self._record_stats,
+            60000)
 
         self._profile_periodic_handle.start()
+        self._stats_periodic_handle.start()
 
         self._state = Controller.PROFILE_RUNNING
 
+    def _record_stats(self):
+        """
+        Records the current smoker stats
+        """
+        if self._stats_history:
+            new_time = max(self._stats_history.keys()) + 1
+        else:
+            new_time = 0
+
+        self._stats_history[new_time] = StatPoint(
+            self._pit_probe.get_temp(),
+            self.get_setpoint(),
+            self._blower.get_speed(),
+            [probe.get_temp() for probe in self._food_probes])
+
+    def get_stat_history(self, sample_rate=1):
+        """
+        Returns the temperature history sampled every ```sample_rate``` minutes
+
+        :param sample_rate: The desired sample rate in minutes
+        :type sample_rate: int
+        :returns: Dictionary of minute:temperature pairs
+        :rtype: Dict
+        """
+        return {str(k):v for k,v in self._stats_history.items() if k % sample_rate == 0}
+        
     def _set_temperature_from_profile(self):
         """
         Sets the temperature based upon the cooking profile
@@ -153,9 +191,9 @@ class Pid(object):
         Initializes the PID controller
 
         :param blower: Blower object
-        :type blower_ctrl: Blower
+        :type blower: Blower
         :param pit_probe: Pit probe object
-        :type blower_speed: Probe
+        :type pit_probe: Probe
         """
         self._blower = blower
         self._pit_probe = pit_probe

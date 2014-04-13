@@ -32,16 +32,45 @@ $(function () {
 
     smokematic.connect(function(event_data) {
         var dateObj = new Date();
-
         /* Localize the timestamps */
-        time = dateObj.getTime() - dateObj.getTimezoneOffset() * 60 * 1000;
-
+        var time = dateObj.getTime() - dateObj.getTimezoneOffset() * 60 * 1000;
         //console.log(event_data);
-        data.food_temp.push([time, event_data.food1_temp]);
-        data.pit_temp.push([time, event_data.pit_temp]);
-        data.setpoint.push([time, event_data.setpoint]);
-        data.blower_speed.push([time, event_data.blower_speed]);
+        if ("update" == event_data.type)
+        {
+            data.food_temp.push([time, event_data.data.food_temp[0]]);
+            data.pit_temp.push([time, event_data.data.pit_temp]);
+            data.setpoint.push([time, event_data.data.setpoint]);
+            data.blower_speed.push([time, event_data.data.blower_speed]);
 
+        }
+        else
+        {
+            var max_time = -1;
+            var times = [];
+            data.food_temp = [];
+            data.pit_temp = [];
+            data.setpoint = [];
+            data.blower_speed = [];
+
+            $.each(event_data.data, function(key, value) {
+                var key_int = parseInt(key);
+                max_time = key_int > max_time ? key_int: max_time;
+                times.push(key_int);
+            });
+            
+            times.sort();
+
+            $.each(times, function(time_offset) {
+                var entry_time = time + ((time_offset - max_time) * 60 * 1000);
+                var time_offset_str = String(time_offset);
+                var data_item = event_data.data[time_offset_str];
+
+                data.food_temp.push([entry_time, data_item.food_temp[0]]);
+                data.pit_temp.push([entry_time, data_item.pit_temp]);
+                data.setpoint.push([entry_time, data_item.setpoint]);
+                data.blower_speed.push([entry_time, data_item.blower_speed]);
+            });
+        }
         plot.setData([
             {yaxis: 1, data: data.pit_temp, label: "Pit Temp"},
             {yaxis: 1, data: data.food_temp, label: "Food Temp"},
@@ -166,7 +195,7 @@ $(function() {
                         }
                     }
                 )
-                console.log(form_data);
+                //console.log(form_data);
 
                 $.ajax({
                     type: 'PUT',
