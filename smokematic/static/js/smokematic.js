@@ -58,7 +58,7 @@ $(function () {
                 times.push(key_int);
             });
             
-            times.sort();
+            times.sort(function(a,b){return a-b;});
 
             $.each(times, function(time_offset) {
                 var entry_time = time + ((time_offset - max_time) * 60 * 1000);
