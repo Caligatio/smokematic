@@ -5,6 +5,13 @@
         infoCallback = callback;
         var socket = new WebSocket('ws://'+document.location.host+'/status');
         
+        socket.onopen = function() {
+            $('#messagebox').append('<div class="alert alert-success fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Successfully connected!</div>');        
+            setTimeout(function(){
+                $('#messagebox').children('.alert-success').remove();
+                }, 3000);
+        };
+
         socket.onmessage = function(event) {
             //console.log('Client received a message',event);
             infoCallback(JSON.parse(event.data));
@@ -12,6 +19,7 @@
 	
         // Listen for socket closes
         socket.onclose = function(event) {
+            $('#messagebox').append('<div class="alert alert-danger fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Disconnected!</div>');        
             //console.log('Client notified socket has closed', event);
         };
     } 
