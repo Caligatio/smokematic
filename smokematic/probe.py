@@ -12,25 +12,22 @@ class Probe(object):
     """
     Controller for a temperature probe
     """
-    def __init__(self, probe_type, probe_pin):
+    def __init__(self, probe_pin, sh_a, sh_b, sh_c):
         """
         Initializes the controller for a temperature probe
 
-        :param probe_type: The model of the probe
-        :type probe_type: str
         :param probe_pin: The BBB ADC pin to use, e.g. P9_39
         :type probe_pin: str
+        :param sh_a: The Steinhart-Hart A coefficient
+        :type sh_a: float
+        :param sh_b: The Steinhart-Hart B coefficient
+        :type sh_b: float
+        :param sh_c: The Steinhart-Hart C coefficient
+        :type sh_c: float
         """
-        if 'Maverick ET-72/73' == probe_type:
-            self._sh_a = 2.4723753e-04
-            self._sh_b = 2.3402251e-04
-            self._sh_c = 1.3879768e-07
-        elif 'Thermoworks Pro-Series' == probe_type:
-            self._sh_a = 6.6853001e-04
-            self._sh_b = 2.2231022e-04
-            self._sh_c = 9.9680632e-08
-        else:
-            raise ValueError('Unspported thermal probe type')
+        self._sh_a = sh_a
+        self._sh_b = sh_b
+        self._sh_c = sh_c
 
         # Going to call a temperature read every 10 seconds so keep the last minute's worth
 

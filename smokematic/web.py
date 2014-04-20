@@ -1,5 +1,6 @@
 import json
 import logging
+import os.path
 
 import tornado.ioloop
 import tornado.web
@@ -277,20 +278,58 @@ class PidHandler(tornado.web.RequestHandler):
         self.finish('{}\n'.format(json.dumps(ret_dict)))
 
  
-def main():
-    blower = Blower("P9_14")
-    baster = Baster("P8_14")
+def main(config):
+    logging_mapping = {
+        "DEBUG": logging.DEBUG,
+        "INFO": logging.INFO,
+        "WARNING": logging.WARNING,
+        "ERROR": logging.ERROR,
+        "CRITICAL": logging.CRITICAL
+    }
+    logging_level = logging_mapping[config['logging']['level']]
+    
+    logging.basicConfig(level=logging_level)
+    
+    # Tornado is a bit chatty on the log so never go to DEBUG
+    tornado_logger = logging.getLogger('tornado')
+    tornado_logger.setLevel(max(logging_level, logging.INFO))
+    
+    current_path = os.path.dirname(__file__)
 
-    food1_probe = Probe('Thermoworks Pro-Series', 'P9_39')
-    pit_probe = Probe('Maverick ET-72/73', 'P9_40')
+    blower = Blower(config['blower']['pin'])
+    baster = Baster(config['baster']['pin'])
+
+    pit_probe = Probe(
+        config['pit_probe']['pin'],
+        config['pit_probe']['sh_a'],
+        config['pit_probe']['sh_b'],
+        config['pit_probe']['sh_c']
+    )
+    
+    food_probes = []
+    
+    for food_probe in config['food_probes']:
+        food_probes.append(
+            Probe(
+                food_probe['pin'],
+                food_probe['sh_a'],
+                food_probe['sh_b'],
+                food_probe['sh_c']
+            )
+        )
 
     controller = Controller(
         blower,
         pit_probe,
-        food1_probe)
+        *food_probes)
 
-    controller.set_pid_coefficients(3, 0.005, 20)
-    controller.set_profile({0: 250})
+    controller.set_pid_coefficients(
+        config['pid_coefficients']['k_p'],
+        config['pid_coefficients']['k_i'],
+        config['pid_coefficients']['k_d'],
+    )
+
+    controller.set_profile({0: config['initial_setpoint']})
 
     application = tornado.web.Application(
         [
@@ -299,18 +338,12 @@ def main():
             (r'/override', OverrideHandler),
             (r'/pid', PidHandler),
             (r'/baste', BasteHandler)],
-        static_path = 'static',
+        static_path = os.path.join(current_path, 'webgui'),
         blower = blower,
         baster = baster,
         controller = controller,
-        probes = {'food': (food1_probe,), 'pit': pit_probe})
+        probes = {'food': food_probes, 'pit': pit_probe})
 
-    application.listen(8080)
+    application.listen(config['server']['port'])
     tornado.ioloop.IOLoop.instance().start()
 
-if '__main__' == __name__:
-    logging.basicConfig(level=logging.DEBUG)
-
-    tornado_logger = logging.getLogger('tornado')
-    tornado_logger.setLevel(logging.INFO)
-    main()

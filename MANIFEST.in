@@ -1,0 +1,2 @@
+recursive-include smokematic/skel *.*
+recursive-include smokematic/webgui *.*

@@ -1,0 +1,35 @@
+{
+    "pid_coefficients": {
+        "k_p": 3,
+        "k_i": 0.005,
+        "k_d": 20
+    },
+    "initial_setpoint": 250,
+    "pit_probe": {
+        "pin": "P9_40",
+        "sh_a": 0.00024723753,
+        "sh_b": 0.00023402251,
+        "sh_c": 0.00000013879768
+    },
+    "food_probes": [
+        {
+            "pin": "P9_39",
+            "sh_a": 0.00066853001,
+            "sh_b": 0.00022231022,
+            "sh_c": 0.000000099680632
+        }
+    ],
+    "blower": {
+        "pin": "P9_14"
+    },
+    "baster": {
+        "pin": "P8_14"
+    },
+    "server": {
+        "address": "0.0.0.0",
+        "port": 8080
+    },
+    "logging": {
+        "level": "INFO"
+    }
+}
