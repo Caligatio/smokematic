@@ -49,6 +49,7 @@
                     </li>
                     <li><a href="#" id="tempOverrideBtn">Temperature Override</a></li>
                     <li><a href="#" id="basteBtn">Basting Settings</a></li>
+                    <li><a href="#" id="alarmBtn">Food Alarm</a></li>
                     <li><a href="#" id="pidTweaksBtn">PID Tweaks</a></li>
                 </ul>
             </div><!--/.nav-collapse -->
@@ -57,6 +58,7 @@
     
     <div class="container theme-showcase" role="main">
         <div id="messagebox"></div>
+        <div id="alarmbox"></div>
         <div id="graph"></div>
       
         <div class="modal fade" id="newProfileModal" tabindex="-1" role="dialog" aria-labelledby="newProfileTitle" aria-hidden="true">
@@ -149,7 +151,35 @@
                 </div>
             </div>
         </div>
- 
+
+        <div class="modal fade" id="alarmModal" tabindex="-1" role="dialog" aria-labelledby="alarmTitle" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="pidTitle">Food Alarm</h4>
+                    </div>
+                    <form class="form-horizontal" name="alarmForm" id="alarmForm" method="post" action="#">
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label class="control-label col-md-4" for="temperature">Temperature</label>
+                                <div class="col-md-6">
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="alarm1Temp" name="alarm1Temp"/>
+                                        <span class="input-group-addon">&deg;F</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Set</button>
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div> 
+
         <div class="modal fade" id="pidModal" tabindex="-1" role="dialog" aria-labelledby="pidTitle" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -196,6 +226,7 @@
     <script type="text/javascript" src="/static/js/jquery.min.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.validate.min.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.cookie.js"></script>
     <script type="text/javascript" src="/static/js/additional-methods.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.flot.min.js"></script>
     <script type="text/javascript" src="/static/js/jquery.flot.resize.min.js"></script>

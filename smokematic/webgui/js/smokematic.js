@@ -49,6 +49,11 @@ $(function () {
             data.pit_temp.push([time, event_data.data.pit_temp]);
             data.setpoint.push([time, event_data.data.setpoint]);
             data.blower_speed.push([time, event_data.data.blower_speed]);
+            
+            var alarm1Temp = (typeof $.cookie("alarm1Temp") != "undefined") ? $.cookie("alarm1Temp") : 0;
+            if ((event_data.data.food_temp[0] >= alarm1Temp) && ($("#alarm1Msg").length == 0)) {
+                $('#alarmbox').append('<div id="alarm1Msg" class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Food Item #1 reached temperature!</div>');        
+            }
 
         }
         else
@@ -133,6 +138,12 @@ $(function() {
             $('#basteModal').modal()
             //console.log(data); 
         });
+    });
+    /* Add onclick action for the Food Alarm Button */
+    $("#alarmBtn").click(function() {
+        var alarm1Temp = (typeof $.cookie("alarm1Temp") != "undefined") ? $.cookie("alarm1Temp") : 0;
+        $("#alarm1Temp").val(alarm1Temp);
+        $('#alarmModal').modal()
     });
     /* Add onclick action for the PID Tweaks button */
     $("#pidTweaksBtn").click(function() {
@@ -316,6 +327,41 @@ $(function() {
                     $('#basteModal').modal('hide');
                     //console.log(data); 
                 });
+            }
+        })
+
+     $("#alarmForm")
+        .submit(function(e){
+            e.preventDefault()
+        })
+        .validate({
+            rules: {
+                alarm1Temp:{
+                    number: true,
+                    range: [0, 500],
+                    required: true
+                }
+            },
+            messages: {
+                temperature: "Temperature must be 0-500 degrees"
+            },
+            highlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-success').addClass('has-error');
+            },
+            unhighlight: function (element) {
+                $(element).closest('.form-group').removeClass('has-error').addClass('has-success');
+            },
+            errorClass: 'help-block',
+            errorPlacement: function(error, element) {
+                if(element.parent('.input-group').length) {
+                    error.insertAfter(element.parent());
+                } else {
+                    error.insertAfter(element);
+                }
+            },
+            submitHandler: function(form){
+                $.cookie("alarm1Temp", $("#alarm1Temp").val(), {expires: 1}); 
+                $('#alarmModal').modal('hide');
             }
         })
 
