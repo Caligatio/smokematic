@@ -50,9 +50,11 @@ $(function () {
             data.setpoint.push([time, event_data.data.setpoint]);
             data.blower_speed.push([time, event_data.data.blower_speed]);
             
-            var alarm1Temp = (typeof $.cookie("alarm1Temp") != "undefined") ? $.cookie("alarm1Temp") : 0;
-            if ((event_data.data.food_temp[0] >= alarm1Temp) && ($("#alarm1Msg").length == 0)) {
-                $('#alarmbox').append('<div id="alarm1Msg" class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Food Item #1 reached temperature!</div>');        
+            for (var i = 0; i < event_data.data.food_alarms.length; i++)
+            {
+                if ((event_data.data.food_temp[i] >= event_data.data.food_alarms[i]) && ($("#alarm" + (i + 1) + "Msg").length == 0)) {
+                    $('#alarmbox').append('<div id="alarm1Msg" class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Food Item #' + (i + 1) + ' reached temperature!</div>');        
+                }
             }
 
         }
@@ -141,9 +143,16 @@ $(function() {
     });
     /* Add onclick action for the Food Alarm Button */
     $("#alarmBtn").click(function() {
-        var alarm1Temp = (typeof $.cookie("alarm1Temp") != "undefined") ? $.cookie("alarm1Temp") : 0;
-        $("#alarm1Temp").val(alarm1Temp);
-        $('#alarmModal').modal()
+        $.ajax({
+            type: 'GET',
+            url: '/alarms',
+            contentType: "application/json",
+            dataType: 'json'
+        })
+        .done(function(data) {
+            $('#alarm1Temp').val(data.data.food_alarms[0]);
+            $('#alarmModal').modal()
+        });
     });
     /* Add onclick action for the PID Tweaks button */
     $("#pidTweaksBtn").click(function() {
@@ -360,8 +369,18 @@ $(function() {
                 }
             },
             submitHandler: function(form){
-                $.cookie("alarm1Temp", $("#alarm1Temp").val(), {expires: 1}); 
-                $('#alarmModal').modal('hide');
+                $.ajax({
+                    type: 'PUT',
+                    url: '/alarms',
+                    data: JSON.stringify({food_alarms: [$("#alarm1Temp").val()]}),
+                    processData: false,
+                    contentType: "application/json",
+                    dataType: 'json'
+                })
+                .done(function(data) {
+                    $('#alarmModal').modal('hide');
+                    //console.log(data); 
+                });
             }
         })
 

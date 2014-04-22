@@ -41,10 +41,52 @@ class StatusWebSocket(tornado.websocket.WebSocketHandler):
                 'pit_temp': self.application.settings['probes']['pit'].get_temp(),
                 'food_temp': [probe.get_temp() for probe in self.application.settings['probes']['food']],
                 'setpoint': self.application.settings['controller'].get_setpoint(),
+                'food_alarms': self.application.settings['food_alarms'],
                 'blower_speed': self.application.settings['blower'].get_speed()}})
 
     def on_close(self):
         self._update_handle.stop()
+
+class AlarmsHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.content_type = 'application/json'
+        self.finish('{}\n'.format(
+            json.dumps(
+                {
+                    'status': 'success',
+                    'data': {
+                        'food_alarms': self.application.settings['food_alarms']}})))
+
+    def put(self):
+        try:
+            data = json.loads(self.request.body)
+            food_alarms = data['food_alarms']
+
+            numeric_alarms = []
+            for alarm in food_alarms:
+                numeric_alarms.append(float(alarm))
+
+            if len(numeric_alarms) != len(self.application.settings['food_alarms']):
+                raise ValueError('Insufficient number of alarms declared')
+              
+            self.application.settings['food_alarms'] = numeric_alarms
+            ret_dict = {
+                'status': 'success',
+                'data': {'food_alarms': numeric_alarms}}
+            self.set_status(200)
+        except KeyError:
+            ret_dict = {
+                'status': 'fail',
+                'data': {'message': 'food_alarms setting must be present'}}
+            self.set_status(400)
+        except ValueError:
+            ret_dict = {
+                'status': 'fail',
+                'data': {'message': 'all food_alarms must be present in JSON'}}
+            self.set_status(400)
+        
+        self.content_type = 'application/json'
+        self.finish('{}\n'.format(json.dumps(ret_dict)))
 
 class BasteHandler(tornado.web.RequestHandler):
     def get(self):
@@ -307,6 +349,7 @@ def main(config):
     )
     
     food_probes = []
+    food_alarms = []
     
     for food_probe in config['food_probes']:
         food_probes.append(
@@ -317,6 +360,7 @@ def main(config):
                 food_probe['sh_c']
             )
         )
+        food_alarms.append(None)
 
     controller = Controller(
         blower,
@@ -337,11 +381,13 @@ def main(config):
             (r'/profile', ProfileHandler),
             (r'/override', OverrideHandler),
             (r'/pid', PidHandler),
+            (r'/alarms', AlarmsHandler),
             (r'/baste', BasteHandler)],
         static_path = os.path.join(current_path, 'webgui'),
         blower = blower,
         baster = baster,
         controller = controller,
+        food_alarms = food_alarms,
         probes = {'food': food_probes, 'pit': pit_probe})
 
     application.listen(config['server']['port'])
