@@ -52,8 +52,8 @@ $(function () {
             
             for (var i = 0; i < event_data.data.food_alarms.length; i++)
             {
-                if ((event_data.data.food_temp[i] >= event_data.data.food_alarms[i]) && ($("#alarm" + (i + 1) + "Msg").length == 0)) {
-                    $('#alarmbox').append('<div id="alarm1Msg" class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Food Item #' + (i + 1) + ' reached temperature!</div>');        
+                if ((event_data.data.food_temp[i] >= event_data.data.food_alarms[i]) && ($("#alarm" + (i + 1) + "Msg").length == 0) && (event_data.data.food_alarms[i] > 0)) {
+                    $('#alarmbox').append('<div id="alarm1Msg" class="alert alert-info fade in"><button type="button" class="close" data-dismiss="alert">&times;</button>Food Item #' + (i + 1) + 'reached temperature!</div>');        
                 }
             }
 
