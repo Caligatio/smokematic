@@ -39,6 +39,8 @@ is contained the *skel* directory but the program takes an optional command-line
 argument that is the path to customized configuration file.  The interface is
 accessible, by default, at port 8080 with a path of /static/index.html
 
+It is recommended to use a program like supervisor_ to daemonize Smokematic.
+
 Dependencies
 ============
 
@@ -59,4 +61,6 @@ Smokematic requires a compatible Linux installation running on the BBB.
 .. _Adafruit_BBIO: https://pypi.python.org/pypi/Adafruit_BBIO
 
 .. _HeaterMeter: https://github.com/CapnBry/HeaterMeter
+
+.. _supervisor: http://supervisord.org/
 
