@@ -29,10 +29,10 @@ class Blower(object):
     def get_speed(self):
         """
         The speed of the blower, from 0-100
-        
+
         :returns: Returns the current speed
         :rtype: int
-        """ 
+        """
         return self._speed
 
     def set_speed(self, speed):
@@ -50,15 +50,15 @@ class Blower(object):
 
         if speed < 0 or speed > 100:
             raise ValueError('Fan speed must be between 0-100')
-        
+
         if self._low_speed_handle:
             ioloop.remove_timeout(self._low_speed_handle)
             self._low_speed_handle = None
-        
+
         if self._speed < LOW_SPEED and speed > 0:
             # Want to give the fan a full kick to start spinning
             PWM.start(self._blower_pin, 100, PWM_FREQUENCY, 0)
-            
+
             # Only want full speed for 1 second so add a timeout to then set
             # the real speed
             partial_real_speed = functools.partial(
@@ -72,7 +72,7 @@ class Blower(object):
 
         self._speed = speed
         return self._speed
-        
+
     def _set_speed(self, speed):
         """
         Sets the speed of the fan without the high-powered spin up
@@ -97,7 +97,7 @@ class Blower(object):
         :type enable_fan: bool
         """
         ioloop = tornado.ioloop.IOLoop.instance()
-        period = float(100) / speed 
+        period = float(100) / speed
 
         if enable_fan:
             # This should be 1 second but the spin-up takes half a second

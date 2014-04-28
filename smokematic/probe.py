@@ -29,10 +29,9 @@ class Probe(object):
         self._sh_b = sh_b
         self._sh_c = sh_c
 
-        # Going to call a temperature read every 10 seconds so keep the last minute's worth
-
         self._probe_pin = probe_pin
         self._ema_temp = None
+        self._last_temp = None
 
         ADC.setup()
 
@@ -44,7 +43,7 @@ class Probe(object):
             self._take_temperature,
             SAMPLE_PERIOD * 1000)
         self._periodic_temp.start()
-        
+
     def get_temp(self):
         """
         Returns the exponential moving average temperature from the last minute
@@ -67,7 +66,7 @@ class Probe(object):
         invert_temp_k = self._sh_a + self._sh_b * log_resistance + self._sh_c * math.pow(log_resistance, 3)
         temp_k = 1 / invert_temp_k
         temp_f = (9.0 / 5.0) * (temp_k - 273.15) + 32
-       
+
         self._last_temp = temp_f
 
         if not self._ema_temp:

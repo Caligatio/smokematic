@@ -6,7 +6,10 @@ import tornado.gen
 
 PID_INTERVAL = 60
 
-StatPoint = namedtuple('StatPoint', ['pit_temp', 'setpoint', 'blower_speed', 'food_temps'])
+StatPoint = namedtuple(
+    'StatPoint',
+    ['pit_temp', 'setpoint', 'blower_speed', 'food_temps']
+)
 
 class Controller(object):
     """
@@ -14,7 +17,7 @@ class Controller(object):
     """
     UNINITIALIZED = 0
     PROFILE_RUNNING = 1
-    OVERRIDE = 2 
+    OVERRIDE = 2
 
     def __init__(self, blower, pit_probe, *food_probes):
         """
@@ -66,7 +69,8 @@ class Controller(object):
         """
         Sets a new cooking profile
 
-        :param profile: A dictionary with numeric minute keys and temperature values
+        :param profile: A dictionary with numeric minute keys and temperature
+            values
         :type prfile: dict
         """
         if 0 not in profile:
@@ -119,22 +123,22 @@ class Controller(object):
         :returns: Dictionary of minute:temperature pairs
         :rtype: Dict
         """
-        return {str(k):v for k,v in self._stats_history.items() if k % sample_rate == 0}
-        
+        return {str(k):v for k, v in self._stats_history.items() if k % sample_rate == 0}
+
     def _set_temperature_from_profile(self):
         """
         Sets the temperature based upon the cooking profile
         """
         now = time.time()
         time_offset = (now - self._profile_time_start) / 60
-        
+
         sorted_times = sorted(self._cook_profile.keys())
 
         for profile_time in sorted_times:
             if time_offset >= profile_time:
                 if self.get_setpoint() != self._cook_profile[profile_time]:
                     self._pid.set_setpoint(self._cook_profile[profile_time])
-        
+
     def get_state(self):
         """
         Returns the state of the controller
@@ -155,13 +159,13 @@ class Controller(object):
             self._profile_periodic_handle.stop()
             self._profile_periodic_handle = None
 
-        self._pid.set_setpoint(temp) 
+        self._pid.set_setpoint(temp)
         self._state = Controller.OVERRIDE
 
     def get_setpoint(self):
         """
         Gets the current setpoint temperature
-        
+
         :returns: Current setpoint temperature
         :rtype: float
         """
@@ -213,10 +217,10 @@ class Pid(object):
     def get_setpoint(self):
         """
         Returns the current temperature setpoint
-        
+
         :returns: The current temperature setpoint
         :rtype: int
-        """ 
+        """
         return self._setpoint
 
     def set_setpoint(self, setpoint):
@@ -274,8 +278,6 @@ class Pid(object):
         if not self._setpoint:
             raise RuntimeError('Temperature setpoint must be set before enabling')
 
-        ioloop = tornado.ioloop.IOLoop.instance()
-
         self._pid_periodic_handle = tornado.ioloop.PeriodicCallback(
             self._pid_calc,
             PID_INTERVAL * 1000)
@@ -297,7 +299,7 @@ class Pid(object):
 
         self._enabled = False
 
-    def set_manual_speed(fan_speed):
+    def set_manual_speed(self, fan_speed):
         """
         Overrides the PID controller with a manual blower speed
         """
@@ -327,7 +329,7 @@ class Pid(object):
             self._ci *= 0.10
 
         p_part = self._k_p * error
-       
+
         # Anti-windup check
         if (error > 0 and curr_blower < 100) or (error < 0 and curr_blower > 0):
             self._ci += error * PID_INTERVAL
@@ -344,7 +346,7 @@ class Pid(object):
         logging.debug('PID results: Read {}, Wanted {}, P={} I={} D={}, Set fan to {}'.format(
             curr_temp,
             self._setpoint,
-            p_part, 
+            p_part,
             i_part,
             d_part,
             new_speed))

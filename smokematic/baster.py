@@ -44,11 +44,13 @@ class Baster(object):
         self._frequency = frequency
 
         if self._baste_periodic_handle:
-            self._baste_periodic_handle.stop()        
+            self._baste_periodic_handle.stop()
             self._baste_periodic_handle = None
 
         if self._baste_off_handle:
-            tornado.ioloop.IOLoop.instance().remove_timeout(self._baste_off_handle)
+            tornado.ioloop.IOLoop.instance().remove_timeout(
+                self._baste_off_handle
+            )
             self._baste_off_handle = None
 
         self._baste_off()
@@ -57,7 +59,7 @@ class Baster(object):
 
             self._baste_periodic_handle = tornado.ioloop.PeriodicCallback(
                 self._baste,
-                frequency * 60 * 1000) 
+                frequency * 60 * 1000)
             self._baste_periodic_handle.start()
             self._baste()
 
