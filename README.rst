@@ -28,6 +28,16 @@ Installation
 A working Debian_ or Ubuntu_ Linux installation, then
 
   $ pip install smokematic
+  
+Usage
+=====
+
+Build a Smokematic cape according to the schematic provided in the git
+repository.  Once complete, follow the installation instructions and then
+simply run the *smokmatic* executable as root.  A default configuration file
+is contained the *skel* directory but the program takes an optional command-line
+argument that is the path to customized configuration file.  The interface is
+accessible, by default, at port 8080 with a path of /static/index.html
 
 Dependencies
 ============
